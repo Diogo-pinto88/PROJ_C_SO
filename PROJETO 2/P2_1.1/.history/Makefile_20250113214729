@@ -1,0 +1,82 @@
+
+#CC = gcc
+
+# Flags de compilação
+#CFLAGS = -g -std=c17 -D_POSIX_C_SOURCE=200809L -I. \
+		 -Wall -Wextra \
+		 -Wcast-align -Wconversion -Wfloat-equal -Wformat=2 -Wnull-dereference -Wshadow -Wsign-conversion -Wswitch-enum -Wundef -Wunreachable-code -Wunused \
+		 -pthread
+
+# Variáveis para diretórios
+#SRC_SERVER = src/server
+#SRC_CLIENT = src/client
+#SRC_COMMON = src/common
+
+# Arquivos objeto do servidor
+#SERVER_OBJS = $(SRC_SERVER)/operations.o $(SRC_SERVER)/kvs.o $(SRC_SERVER)/io.o $(SRC_SERVER)/parser.o $(SRC_COMMON)/io.o $(SRC_CLIENT)/api.o
+
+# Arquivos objeto do cliente
+#CLIENT_OBJS = $(SRC_CLIENT)/api.o $(SRC_CLIENT)/parser.o $(SRC_COMMON)/io.o
+
+# Executáveis finais
+#SERVER_EXEC = $(SRC_SERVER)/kvs
+#CLIENT_EXEC = $(SRC_CLIENT)/client
+
+#.PHONY: all clean format
+
+# Compilar tudo
+#all: $(SERVER_EXEC) $(CLIENT_EXEC)
+
+# Regras para o executável do servidor
+#$(SERVER_EXEC): $(SRC_SERVER)/main.c $(SERVER_OBJS)
+#	$(CC) $(CFLAGS) -o $@ $^
+
+# Regras para o executável do cliente
+#$(CLIENT_EXEC): $(SRC_CLIENT)/main.c $(CLIENT_OBJS)
+#	$(CC) $(CFLAGS) -o $@ $^
+
+# Regra geral para compilar arquivos .c em .o
+#%.o: %.c %.h
+#	$(CC) $(CFLAGS) -c $< -o $@
+
+# Limpar arquivos compilados
+#clean:
+#	rm -f $(SRC_COMMON)/*.o $(SRC_CLIENT)/*.o $(SRC_SERVER)/*.o $(SERVER_EXEC) $(CLIENT_EXEC)
+
+# Formatar código
+#format:
+#	@which clang-format >/dev/null 2>&1 || echo "Please install clang-format to run this command"
+#	clang-format -i $(SRC_COMMON)/*.c $(SRC_COMMON)/*.h $(SRC_CLIENT)/*.c $(SRC_CLIENT)/*.h $(SRC_SERVER)/*.c $(SRC_SERVER)/*.h
+
+CC = gcc
+
+# Flags de compilação
+CFLAGS = -g -std=c17 -D_POSIX_C_SOURCE=200809L -I. \
+		 -Wall -Wextra \
+		 -Wcast-align -Wconversion -Wfloat-equal -Wformat=2 -Wnull-dereference -Wshadow -Wsign-conversion -Wswitch-enum -Wundef -Wunreachable-code -Wunused \
+		 -pthread
+
+ifneq ($(shell uname -s),Darwin) # if not MacOS
+	CFLAGS += -fmax-errors=5
+endif
+
+all: src/server/kvs src/client/client
+
+# Regra para o servidor
+src/server/kvs: src/server/main.c src/common/protocol.h src/common/constants.h src/server/operations.o src/server/kvs.o src/server/io.o src/server/parser.o src/common/io.o src/client/api.o
+	$(CC) $(CFLAGS) -o src/server/main.c src/common/protocol.h src/common/constants.h src/server/operations.o src/server/kvs.o src/server/io.o src/server/parser.o src/common/io.o src/client/api.o
+
+# Regra para o cliente
+src/client/client: src/client/main.c  src/common/protocol.h src/common/constants.h src/client/api.o src/client/parser.o src/common/io.o
+	$(CC) $(CFLAGS) -o src/client/main.c  src/common/protocol.h src/common/constants.h src/client/api.o src/client/parser.o src/common/io.o
+
+# Regra para compilar arquivos .o
+%.o: %.c %.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f src/common/*.o src/client/*.o src/server/*.o src/server/kvs src/client/client
+
+format:
+	@which clang-format >/dev/null 2>&1 || echo "Please install clang-format to run this command"
+	clang-format -i src/common/*.c src/common/*.h src/client/*.c src/client/*.h src/server/*.c src/server/*.h.
